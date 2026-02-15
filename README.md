@@ -62,7 +62,6 @@ The application ensures secure user-specific task management with proper authent
 - PostgreSQL
 
 ---
-
 # 📂 Project Structure
 
 task-manager/
@@ -85,7 +84,6 @@ task-manager/
 │ └── package.json
 │
 └── README.md
-
 
 ---
 
