@@ -299,7 +299,7 @@ Users can:
 
 ---
 
-## 👨‍💻 Author SD NIHAL HUSSAIN
+## 👨‍💻 Author - SD NIHAL HUSSAIN
 
 Developed as a full-stack web application project.
 
