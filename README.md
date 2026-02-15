@@ -299,13 +299,7 @@ Users can:
 
 ---
 
-## 📄 License
-
-This project is created as part of Round 2 Evaluation Assignment.
-
----
-
-## 👨‍💻 Author
+## 👨‍💻 Author SD NIHAL HUSSAIN
 
 Developed as a full-stack web application project.
 
@@ -313,4 +307,4 @@ Developed as a full-stack web application project.
 
 ## 📧 Support
 
-For issues or questions, please contact the development team.
+For issues or questions, please contact at nihalhussain.career@gmail.com
