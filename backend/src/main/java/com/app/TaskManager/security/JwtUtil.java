@@ -13,7 +13,8 @@ import java.util.Date;
 public class JwtUtil {
 
     private final SecretKey SECRET_KEY =
-            Keys.hmacShaKeyFor("mysecretkeymysecretkeymysecretkey123456".getBytes());
+            Keys.hmacShaKeyFor("mysecretkeymysecretkeymysecretkey123456".getBytes()); // should be hardcoded for production kept this here for easy setting in local dev
+            // add @Value("${jwt.secret}") like this at time of production then add it to application properties
 
     // Generate JWT Token
     public String generateToken(String email) {
