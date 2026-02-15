@@ -62,26 +62,24 @@ The application ensures secure user-specific task management with proper authent
 - PostgreSQL
 
 ---
-# 📂 Project Structure
-
 task-manager/
 │
-├── backend/ # Spring Boot Backend
-│ ├── src/main/java/ # Controllers, Models, Security, Repositories
-│ ├── src/main/resources/
-│ │ └── application.properties # Database & App Configuration
-│ └── pom.xml # Maven dependencies
+├── backend/                          # Spring Boot Backend
+│   ├── src/main/java/               # Controllers, Models, Security, Repositories
+│   ├── src/main/resources/
+│   │   └── application.properties    # Database & App Configuration
+│   └── pom.xml                       # Maven dependencies
 │
-├── frontend/
-│ └── taskmanager-ui/ # React Frontend
-│ ├── src/
-│ │ ├── App.js
-│ │ ├── Dashboard.js
-│ │ ├── Login.js
-│ │ ├── Register.js
-│ │ └── index.js
-│ ├── public/
-│ └── package.json
+├── frontend/                         # React Frontend
+│   └── taskmanager-ui/
+│       ├── src/
+│       │   ├── App.js
+│       │   ├── Dashboard.js
+│       │   ├── Login.js
+│       │   ├── Register.js
+│       │   └── index.js
+│       ├── public/
+│       └── package.json
 │
 └── README.md
 
