@@ -22,9 +22,16 @@ function App() {
       localStorage.setItem("theme", "light");
     }
     
-    if (token && storedUser) {
-      setUser(JSON.parse(storedUser));
-      setIsLoggedIn(true);
+    if (token && storedUser && storedUser !== "undefined") {
+      try {
+        setUser(JSON.parse(storedUser));
+        setIsLoggedIn(true);
+      } catch (err) {
+        // If parsing fails, clear invalid data
+        console.error("Failed to parse stored user:", err);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
     }
   }, []);
 
