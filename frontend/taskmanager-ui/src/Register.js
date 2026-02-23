@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { UserPlus, ArrowLeft, Mail, Lock, User, AlertCircle, CheckCircle2, Loader, Moon, Sun, Eye, EyeOff, Target, Sparkles, Shield, Clock, CheckSquare } from "lucide-react";
+import { UserPlus, ArrowLeft, Mail, Lock, User, AlertCircle, CheckCircle2, Loader, Moon, Sun, Eye, EyeOff, Target, Sparkles, Clock, CheckSquare } from "lucide-react"; // Removed unused Shield import
 
 function Register({ onSuccess, onSwitchToLogin, darkMode = true, onToggleTheme }) {
   const [formData, setFormData] = useState({ name: "", email: "", password: "", confirmPassword: "" });

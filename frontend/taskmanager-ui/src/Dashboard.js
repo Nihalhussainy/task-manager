@@ -63,7 +63,7 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
     }
   };
 
-  useEffect(() => { fetchTasks(); }, []);
+  useEffect(() => { fetchTasks(); }, [fetchTasks]);
 
   useEffect(() => {
     // Add smooth transitions for theme switching
@@ -115,24 +115,7 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
     return null;
   };
 
-  const formatCreatedAt = (t) => {
-    const v = getCreatedAt(t);
-    if (!v) return null;
-    // handle numeric timestamps (seconds or milliseconds)
-    if (typeof v === 'number') {
-      const ms = v > 1e12 ? v : (v > 1e9 ? v * 1000 : v);
-      return new Date(ms).toLocaleString();
-    }
-    // handle numeric string
-    if (/^\d+$/.test(String(v))) {
-      const n = parseInt(v, 10);
-      const ms = n > 1e12 ? n : (n > 1e9 ? n * 1000 : n);
-      return new Date(ms).toLocaleString();
-    }
-    const parsed = Date.parse(v);
-    if (isNaN(parsed)) return null;
-    return new Date(parsed).toLocaleString();
-  };
+  // Removed unused formatCreatedAt function
 
   const recentTasks = useMemo(() => {
     return tasks.slice(0, 3);
