@@ -7,103 +7,136 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [view, setView] = useState("LOGIN");
   const [user, setUser] = useState(null);
-  const [darkMode, setDarkMode] = useState(false); // Default to light mode (false)
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
     const savedTheme = localStorage.getItem("theme");
     
-    console.log("App init - Token:", token ? "✓ Found" : "✗ Not found");
-    console.log("App init - User:", storedUser ? "✓ Found" : "✗ Not found");
+    console.log("=== APP INIT ===");
+    console.log("Token found:", !!token);
+    console.log("User found:", !!storedUser);
     
-    // Initialize theme: use saved theme if available, otherwise default to light (false)
+    // Initialize theme
     if (savedTheme) {
       setDarkMode(savedTheme === "dark");
     } else {
-      setDarkMode(false); // Light mode is default
+      setDarkMode(false);
       localStorage.setItem("theme", "light");
     }
     
     if (token && storedUser && storedUser !== "undefined") {
       try {
         const parsedUser = JSON.parse(storedUser);
-        console.log("App init - User parsed successfully:", parsedUser.name);
+        console.log("✅ User parsed:", parsedUser.name);
         
-        // Check if token is expired before restoring session
-        if (isTokenExpired(token)) {
-          console.log("Token is expired - clearing session");
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          setIsLoggedIn(false);
-          setView("LOGIN");
-        } else {
-          console.log("Token is valid - restoring session");
+        // Decode and check token
+        const decoded = decodeToken(token);
+        console.log("Token decoded:", decoded);
+        
+        if (decoded && !isTokenExpired(token)) {
+          console.log("✅ Token is valid - RESTORING SESSION");
           setUser(parsedUser);
           setIsLoggedIn(true);
+        } else {
+          console.log("❌ Token is expired or invalid - CLEARING SESSION");
+          clearSession();
+          setView("LOGIN");
         }
       } catch (err) {
-        // If parsing fails, clear invalid data
-        console.error("Failed to parse stored user:", err);
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        setIsLoggedIn(false);
+        console.error("❌ Error:", err.message);
+        clearSession();
         setView("LOGIN");
       }
     } else {
-      // No valid token/user, stay on login
-      console.log("App init - No valid session, showing login");
+      console.log("No token/user found - showing login");
       setIsLoggedIn(false);
       setView("LOGIN");
     }
   }, []);
 
-  // Decode JWT and check if it's expired
-  const isTokenExpired = (token) => {
+  // Decode JWT without validation
+  const decodeToken = (token) => {
     try {
-      // JWT format: header.payload.signature
       const parts = token.split(".");
       if (parts.length !== 3) {
-        console.error("Invalid token format");
-        return true;
+        console.log("Invalid token format (not 3 parts)");
+        return null;
       }
 
-      // Decode the payload (second part)
-      const payload = JSON.parse(atob(parts[1]));
-      console.log("Token payload:", payload);
-
-      // Check expiration time (exp is in seconds, Date.now() is in milliseconds)
-      const currentTime = Math.floor(Date.now() / 1000);
-      const isExpired = payload.exp && payload.exp < currentTime;
-
-      if (isExpired) {
-        console.log("Token expired at:", new Date(payload.exp * 1000));
-        console.log("Current time:", new Date(currentTime * 1000));
-      }
-
-      return isExpired;
+      let payload = parts[1];
+      // Add padding if needed
+      payload += '='.repeat((4 - payload.length % 4) % 4);
+      
+      const decoded = JSON.parse(atob(payload));
+      console.log("Decoded payload:", {
+        sub: decoded.sub,
+        iat: new Date(decoded.iat * 1000),
+        exp: new Date(decoded.exp * 1000),
+        expiresIn: Math.round((decoded.exp - Math.floor(Date.now() / 1000)) / 60) + " minutes"
+      });
+      
+      return decoded;
     } catch (err) {
-      console.error("Error decoding token:", err);
-      return true; // Treat invalid tokens as expired
+      console.error("Failed to decode token:", err.message);
+      return null;
     }
   };
 
+  // Check if token is expired
+  const isTokenExpired = (token) => {
+    try {
+      const parts = token.split(".");
+      if (parts.length !== 3) return true;
+
+      let payload = parts[1];
+      payload += '='.repeat((4 - payload.length % 4) % 4);
+      
+      const decoded = JSON.parse(atob(payload));
+      const currentTime = Math.floor(Date.now() / 1000);
+      const expired = decoded.exp < currentTime;
+      
+      console.log("Expiration check:", {
+        currentTime: new Date(currentTime * 1000),
+        expiresAt: new Date(decoded.exp * 1000),
+        isExpired: expired
+      });
+      
+      return expired;
+    } catch (err) {
+      console.error("Error checking expiration:", err.message);
+      return true;
+    }
+  };
+
+  const clearSession = () => {
+    console.log("Clearing session...");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    setIsLoggedIn(false);
+  };
+
   const handleLoginSuccess = (userData, token) => {
-    console.log("Login success - Storing token:", token ? "✓ Token received" : "✗ No token");
-    console.log("Login success - User data:", userData?.name || "No user name");
+    console.log("=== LOGIN SUCCESS ===");
+    console.log("User:", userData.name);
+    console.log("Token received: Yes");
+    
+    const decoded = decodeToken(token);
+    if (decoded) {
+      console.log("Token expires in:", Math.round((decoded.exp - Math.floor(Date.now() / 1000)) / 60) + " minutes");
+    }
+    
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(userData));
-    console.log("Login success - Stored in localStorage");
     setUser(userData);
     setIsLoggedIn(true);
   };
 
   const handleLogout = () => {
-    console.log("LOGOUT called - clearing session");
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
-    setIsLoggedIn(false);
+    console.log("=== LOGOUT CALLED ===");
+    clearSession();
     setView("LOGIN");
   };
 
