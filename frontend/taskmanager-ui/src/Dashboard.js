@@ -33,29 +33,27 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
   };
 
   const API = process.env.REACT_APP_API_URL + "/api/tasks";
-  const token = localStorage.getItem("token");
-  const authHeaders = {
-    "Content-Type": "application/json",
-    "Authorization": "Bearer " + token
-  };
 
   const fetchTasks = useCallback(async () => {
     setLoading(true);
+    const token = localStorage.getItem("token");
+    const headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    };
     try {
-      // FIX: Token identifies the user automatically on backend
       const response = await fetch(API, {
-        headers: authHeaders,
+        headers: headers,
         signal: AbortSignal.timeout(5000)
       });
       if (response.ok) {
         const data = await response.json();
-        // Backend sorts by Order field
         setTasks(Array.isArray(data) ? data : []);
       } else {
-        if (response.status === 403) onLogout(); // Token expired
+        if (response.status === 403) onLogout();
         setTasks([]);
       }
-    } catch (err) { 
+    } catch (err) {
       console.error("Fetch error:", err);
       setTasks([]);
     } finally {
@@ -130,23 +128,24 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
     
     try {
       let url, method;
-      
       if (editingTask) {
         url = `${API}/${editingTask.id}`;
         method = "PUT";
       } else {
-        // FIX: No longer need userId param - token identifies user
         url = `${API}/create`;
         method = "POST";
       }
-      
+      const token = localStorage.getItem("token");
+      const headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      };
       const response = await fetch(url, {
         method: method,
-        headers: authHeaders,
+        headers: headers,
         body: JSON.stringify(formData),
         signal: AbortSignal.timeout(5000)
       });
-      
       if (response.ok) {
         setIsModalOpen(false);
         setEditingTask(null);
@@ -157,7 +156,7 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
         const responseText = await response.text();
         showToast('error', `Error: ${response.status} - ${responseText}`);
       }
-    } catch (err) { 
+    } catch (err) {
       console.error("Save error:", err);
       showToast('error', `Failed to save task: ${err.message}`);
     }
@@ -169,9 +168,14 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
 
   const deleteTask = async (id) => {
     try {
+      const token = localStorage.getItem("token");
+      const headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      };
       const response = await fetch(`${API}/${id}`, {
         method: "DELETE",
-        headers: authHeaders,
+        headers: headers,
         signal: AbortSignal.timeout(5000)
       });
       if (response.ok) {
@@ -180,7 +184,7 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
       } else {
         showToast('error', 'Failed to delete task');
       }
-    } catch (err) { 
+    } catch (err) {
       console.error("Delete error:", err);
       showToast('error', 'Failed to delete task');
     } finally {
@@ -228,9 +232,14 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
     // Send new order to backend
     const taskIds = newTasks.map(t => t.id);
     try {
+      const token = localStorage.getItem("token");
+      const headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      };
       await fetch(`${API}/reorder`, {
         method: 'PUT',
-        headers: authHeaders,
+        headers: headers,
         body: JSON.stringify(taskIds),
         signal: AbortSignal.timeout(5000)
       });
@@ -248,20 +257,23 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
     setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: newStatus } : t));
 
     try {
+      const token = localStorage.getItem("token");
+      const headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      };
       const response = await fetch(`${API}/${task.id}`, {
         method: "PUT",
-        headers: authHeaders,
+        headers: headers,
         body: JSON.stringify({ ...task, status: newStatus }),
         signal: AbortSignal.timeout(5000)
       });
       if (!response.ok) {
-        // revert on failure
         setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: task.status } : t));
         showToast('error', 'Failed to update task');
       }
-    } catch (err) { 
+    } catch (err) {
       console.error("Toggle error:", err);
-      // revert
       setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: task.status } : t));
       showToast('error', 'Failed to update task');
     }
