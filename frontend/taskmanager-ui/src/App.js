@@ -8,6 +8,7 @@ function App() {
   const [view, setView] = useState("LOGIN");
   const [user, setUser] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // ✅ FIX: Add loading state
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -26,6 +27,7 @@ function App() {
       localStorage.setItem("theme", "light");
     }
     
+    // ✅ FIX: Improved session restoration
     if (token && storedUser && storedUser !== "undefined") {
       try {
         const parsedUser = JSON.parse(storedUser);
@@ -39,6 +41,7 @@ function App() {
           console.log("✅ Token is valid - RESTORING SESSION");
           setUser(parsedUser);
           setIsLoggedIn(true);
+          setView("DASHBOARD"); // ✅ FIX: Set view to DASHBOARD, not LOGIN
         } else {
           console.log("❌ Token is expired or invalid - CLEARING SESSION");
           clearSession();
@@ -54,6 +57,9 @@ function App() {
       setIsLoggedIn(false);
       setView("LOGIN");
     }
+    
+    // ✅ FIX: Mark loading as complete
+    setIsLoading(false);
   }, []);
 
   // Decode JWT without validation
@@ -121,7 +127,7 @@ function App() {
   const handleLoginSuccess = (userData, token) => {
     console.log("=== LOGIN SUCCESS ===");
     
-    // Validate required fields to prevent undefined errors
+    // ✅ FIX: Validate required fields
     if (!userData || !userData.name || !userData.email || !token) {
       console.error("Invalid login data - missing fields:", { userData, token });
       return;
@@ -135,10 +141,12 @@ function App() {
       console.log("Token expires in:", Math.round((decoded.exp - Math.floor(Date.now() / 1000)) / 60) + " minutes");
     }
     
+    // ✅ FIX: Store the complete user object
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(userData));
     setUser(userData);
     setIsLoggedIn(true);
+    setView("DASHBOARD"); // ✅ FIX: Set view to DASHBOARD after login
   };
 
   const handleLogout = () => {
@@ -153,10 +161,24 @@ function App() {
     localStorage.setItem("theme", newTheme ? "dark" : "light");
   };
 
+  // ✅ FIX: Show loading state while checking session
+  if (isLoading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-black' : 'bg-white'}`}>
+        <div className={`text-center ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ FIX: Show dashboard if logged in
   if (isLoggedIn) {
     return <Dashboard user={user} onLogout={handleLogout} darkMode={darkMode} onToggleTheme={toggleTheme} />;
   }
 
+  // ✅ FIX: Show login or register based on view
   return (
     <>
       {view === "LOGIN" ? (
