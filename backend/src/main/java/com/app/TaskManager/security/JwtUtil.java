@@ -12,8 +12,11 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private final SecretKey SECRET_KEY =
-            Keys.hmacShaKeyFor("mysecretkeymysecretkeymysecretkey123456".getBytes());
+    private final SecretKey SECRET_KEY;
+
+    public JwtUtil(@Value("${jwt.secret}") String secret) {
+        this.SECRET_KEY = Keys.hmacShaKeyFor(secret.getBytes());
+    }
 
     // Generate JWT Token
     public String generateToken(String email) {
