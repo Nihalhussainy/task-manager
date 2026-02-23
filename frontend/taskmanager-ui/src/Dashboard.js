@@ -37,6 +37,8 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
   const fetchTasks = useCallback(async () => {
     setLoading(true);
     const token = localStorage.getItem("token");
+    console.log("Fetching tasks with token:", token ? "✓ Present" : "✗ Missing");
+    
     const headers = {
       "Content-Type": "application/json",
       "Authorization": "Bearer " + token
@@ -46,21 +48,24 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
         headers: headers,
         signal: AbortSignal.timeout(5000)
       });
+      console.log("Fetch response status:", response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log("Tasks fetched successfully:", data.length);
         setTasks(Array.isArray(data) ? data : []);
       } else if (response.status === 401 || response.status === 403) {
         // Only logout on explicit auth failures
-        console.warn("Auth failed:", response.status);
+        console.warn("Auth failed in fetchTasks:", response.status, "- Logging out");
         onLogout();
       } else {
         // Other errors - keep user logged in but show empty tasks
-        console.error("Fetch error:", response.status);
+        console.error("Fetch error status:", response.status);
         setTasks([]);
       }
     } catch (err) {
       // Network/CORS errors - don't logout, just show empty tasks
-      console.error("Fetch error:", err.message);
+      console.error("Fetch network error:", err.message);
       setTasks([]);
     } finally {
       setLoading(false);
@@ -159,6 +164,7 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
         fetchTasks();
         showToast('success', `Task ${editingTask ? 'updated' : 'created'} successfully!`);
       } else if (response.status === 401 || response.status === 403) {
+        console.warn("Auth failed in handleSave:", response.status, "- Logging out");
         onLogout();
       } else {
         const responseText = await response.text();
@@ -190,6 +196,7 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
         fetchTasks();
         showToast('success', 'Task deleted');
       } else if (response.status === 401 || response.status === 403) {
+        console.warn("Auth failed in deleteTask:", response.status, "- Logging out");
         onLogout();
       } else {
         showToast('error', 'Failed to delete task');
@@ -254,6 +261,7 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
         signal: AbortSignal.timeout(5000)
       });
       if (!response.ok && (response.status === 401 || response.status === 403)) {
+        console.warn("Auth failed in onDrop:", response.status, "- Logging out");
         onLogout();
       }
     } catch (err) {
@@ -284,6 +292,7 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
       });
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
+          console.warn("Auth failed in toggleTaskCompletion:", response.status, "- Logging out");
           onLogout();
         } else {
           setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: task.status } : t));

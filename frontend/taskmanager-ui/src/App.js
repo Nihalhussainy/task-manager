@@ -14,6 +14,9 @@ function App() {
     const storedUser = localStorage.getItem("user");
     const savedTheme = localStorage.getItem("theme");
     
+    console.log("App init - Token:", token ? "✓ Found" : "✗ Not found");
+    console.log("App init - User:", storedUser ? "✓ Found" : "✗ Not found");
+    
     // Initialize theme: use saved theme if available, otherwise default to light (false)
     if (savedTheme) {
       setDarkMode(savedTheme === "dark");
@@ -24,25 +27,39 @@ function App() {
     
     if (token && storedUser && storedUser !== "undefined") {
       try {
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        console.log("App init - User parsed successfully:", parsedUser.name);
+        setUser(parsedUser);
         setIsLoggedIn(true);
+        // Don't need to set view since isLoggedIn renders Dashboard directly
       } catch (err) {
         // If parsing fails, clear invalid data
         console.error("Failed to parse stored user:", err);
         localStorage.removeItem("token");
         localStorage.removeItem("user");
+        setIsLoggedIn(false);
+        setView("LOGIN");
       }
+    } else {
+      // No valid token/user, stay on login
+      console.log("App init - No valid session, showing login");
+      setIsLoggedIn(false);
+      setView("LOGIN");
     }
   }, []);
 
   const handleLoginSuccess = (userData, token) => {
+    console.log("Login success - Storing token:", token ? "✓ Token received" : "✗ No token");
+    console.log("Login success - User data:", userData?.name || "No user name");
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(userData));
+    console.log("Login success - Stored in localStorage");
     setUser(userData);
     setIsLoggedIn(true);
   };
 
   const handleLogout = () => {
+    console.log("LOGOUT called - clearing session");
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setUser(null);
