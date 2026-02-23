@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { 
   Plus, Trash2, CheckCircle2, Clock, Edit2, X, 
   Search, LogOut, CheckSquare, Moon, Sun, 
@@ -39,7 +39,7 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
     "Authorization": "Bearer " + token
   };
 
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     setLoading(true);
     try {
       // FIX: Token identifies the user automatically on backend
@@ -61,7 +61,7 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API, onLogout]);
 
   useEffect(() => { fetchTasks(); }, [fetchTasks]);
 
