@@ -29,9 +29,19 @@ function App() {
       try {
         const parsedUser = JSON.parse(storedUser);
         console.log("App init - User parsed successfully:", parsedUser.name);
-        setUser(parsedUser);
-        setIsLoggedIn(true);
-        // Don't need to set view since isLoggedIn renders Dashboard directly
+        
+        // Check if token is expired before restoring session
+        if (isTokenExpired(token)) {
+          console.log("Token is expired - clearing session");
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          setIsLoggedIn(false);
+          setView("LOGIN");
+        } else {
+          console.log("Token is valid - restoring session");
+          setUser(parsedUser);
+          setIsLoggedIn(true);
+        }
       } catch (err) {
         // If parsing fails, clear invalid data
         console.error("Failed to parse stored user:", err);
@@ -47,6 +57,36 @@ function App() {
       setView("LOGIN");
     }
   }, []);
+
+  // Decode JWT and check if it's expired
+  const isTokenExpired = (token) => {
+    try {
+      // JWT format: header.payload.signature
+      const parts = token.split(".");
+      if (parts.length !== 3) {
+        console.error("Invalid token format");
+        return true;
+      }
+
+      // Decode the payload (second part)
+      const payload = JSON.parse(atob(parts[1]));
+      console.log("Token payload:", payload);
+
+      // Check expiration time (exp is in seconds, Date.now() is in milliseconds)
+      const currentTime = Math.floor(Date.now() / 1000);
+      const isExpired = payload.exp && payload.exp < currentTime;
+
+      if (isExpired) {
+        console.log("Token expired at:", new Date(payload.exp * 1000));
+        console.log("Current time:", new Date(currentTime * 1000));
+      }
+
+      return isExpired;
+    } catch (err) {
+      console.error("Error decoding token:", err);
+      return true; // Treat invalid tokens as expired
+    }
+  };
 
   const handleLoginSuccess = (userData, token) => {
     console.log("Login success - Storing token:", token ? "✓ Token received" : "✗ No token");
