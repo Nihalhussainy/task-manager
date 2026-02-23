@@ -120,6 +120,13 @@ function App() {
 
   const handleLoginSuccess = (userData, token) => {
     console.log("=== LOGIN SUCCESS ===");
+    
+    // Validate required fields to prevent undefined errors
+    if (!userData || !userData.name || !userData.email || !token) {
+      console.error("Invalid login data - missing fields:", { userData, token });
+      return;
+    }
+    
     console.log("User:", userData.name);
     console.log("Token received: Yes");
     

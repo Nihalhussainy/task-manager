@@ -38,13 +38,23 @@ function Login({ onLoginSuccess, onSwitchToRegister, darkMode = true, onToggleTh
         body: JSON.stringify({ email: email.trim(), password })
       });
       const data = await response.json();
+      console.log("Login response status:", response.status);
+      console.log("Login response data:", data);
+      
       if (response.ok) {
-        setIsSuccess(true);
-        setTimeout(() => onLoginSuccess(data.user, data.token), 600);
+        // Backend returns { token, user: { id, name, email } }
+        if (data.user && data.user.name && data.user.email && data.token) {
+          setIsSuccess(true);
+          setTimeout(() => onLoginSuccess(data.user, data.token), 600);
+        } else {
+          setError("Invalid response format from server");
+          console.error("Missing required fields in response:", data);
+        }
       } else {
         setError(data.message || "Invalid email or password");
       }
     } catch (err) {
+      console.error("Login error:", err);
       setError("Server is unreachable. Make sure the backend is running.");
     } finally {
       setLoading(false);
