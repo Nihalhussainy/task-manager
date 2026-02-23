@@ -32,7 +32,7 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
     toastTimerRef.current = setTimeout(() => setToast(null), timeout);
   };
 
-  const API = "http://localhost:8080/api/tasks";
+  const API = process.env.REACT_APP_API_URL + "/api/tasks";
   const token = localStorage.getItem("token");
   const authHeaders = {
     "Content-Type": "application/json",

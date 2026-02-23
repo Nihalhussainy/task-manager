@@ -89,7 +89,7 @@ function Register({ onSuccess, onSwitchToLogin, darkMode = true, onToggleTheme }
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8080/api/auth/register", {
+      const response = await fetch(process.env.REACT_APP_API_URL + "/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
