@@ -49,12 +49,18 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
       if (response.ok) {
         const data = await response.json();
         setTasks(Array.isArray(data) ? data : []);
+      } else if (response.status === 401 || response.status === 403) {
+        // Only logout on explicit auth failures
+        console.warn("Auth failed:", response.status);
+        onLogout();
       } else {
-        if (response.status === 403) onLogout();
+        // Other errors - keep user logged in but show empty tasks
+        console.error("Fetch error:", response.status);
         setTasks([]);
       }
     } catch (err) {
-      console.error("Fetch error:", err);
+      // Network/CORS errors - don't logout, just show empty tasks
+      console.error("Fetch error:", err.message);
       setTasks([]);
     } finally {
       setLoading(false);
@@ -152,6 +158,8 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
         setFormData({ title: "", description: "", deadline: "", status: "PENDING", priority: "NORMAL", tags: "" });
         fetchTasks();
         showToast('success', `Task ${editingTask ? 'updated' : 'created'} successfully!`);
+      } else if (response.status === 401 || response.status === 403) {
+        onLogout();
       } else {
         const responseText = await response.text();
         showToast('error', `Error: ${response.status} - ${responseText}`);
@@ -181,6 +189,8 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
       if (response.ok) {
         fetchTasks();
         showToast('success', 'Task deleted');
+      } else if (response.status === 401 || response.status === 403) {
+        onLogout();
       } else {
         showToast('error', 'Failed to delete task');
       }
@@ -237,14 +247,18 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + token
       };
-      await fetch(`${API}/reorder`, {
+      const response = await fetch(`${API}/reorder`, {
         method: 'PUT',
         headers: headers,
         body: JSON.stringify(taskIds),
         signal: AbortSignal.timeout(5000)
       });
+      if (!response.ok && (response.status === 401 || response.status === 403)) {
+        onLogout();
+      }
     } catch (err) {
       console.error("Failed to save order", err);
+      // Don't logout on network error, just show error
       showToast('error', 'Failed to save new order');
     }
   };
@@ -269,11 +283,16 @@ function Dashboard({ user, onLogout, darkMode = false, onToggleTheme }) {
         signal: AbortSignal.timeout(5000)
       });
       if (!response.ok) {
-        setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: task.status } : t));
-        showToast('error', 'Failed to update task');
+        if (response.status === 401 || response.status === 403) {
+          onLogout();
+        } else {
+          setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: task.status } : t));
+          showToast('error', 'Failed to update task');
+        }
       }
     } catch (err) {
       console.error("Toggle error:", err);
+      // On network error, revert but keep user logged in
       setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: task.status } : t));
       showToast('error', 'Failed to update task');
     }
