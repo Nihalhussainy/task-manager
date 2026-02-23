@@ -17,13 +17,12 @@ function Login({ onLoginSuccess, onSwitchToRegister, darkMode = true, onToggleTh
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
     const style = document.createElement("style");
     style.innerHTML = `
       * {
-        transition: background-color 0.3s ease, border-color 0.3s ease, 
+        transition: background-color 0.3s ease, border-color 0.3s ease,
                     color 0.3s ease, box-shadow 0.3s ease;
       }
     `;
@@ -55,7 +54,6 @@ function Login({ onLoginSuccess, onSwitchToRegister, darkMode = true, onToggleTh
         }
       );
 
-      // Handle both JSON and plain text
       let data;
       const contentType = response.headers.get("content-type");
 
@@ -66,18 +64,14 @@ function Login({ onLoginSuccess, onSwitchToRegister, darkMode = true, onToggleTh
       }
 
       if (response.ok) {
-        setIsSuccess(true);
-
         const userData = {
           name: data.name,
           email: data.email
         };
 
-        setTimeout(() => {
-          onLoginSuccess(userData, data.token);
-        }, 500);
+        onLoginSuccess(userData, data.token);
       } else {
-        setError(typeof data === "string" ? data : "Invalid email or password");
+        setError(typeof data === "string" ? data : data.message || "Login failed");
       }
     } catch (err) {
       setError("Server is unreachable. Make sure backend is running.");
